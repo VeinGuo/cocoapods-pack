@@ -26,12 +26,13 @@ class XcodeBuilder
   class BuildError < StandardError; end
   private :user_interface
 
-  def initialize(xcodeproject_path, xcodebuild_opts, xcodebuild_outdir, user_interface, verbose = false)
+  def initialize(xcodeproject_path, xcodebuild_opts, xcodebuild_outdir, user_interface, verbose = false, build_maccatalyst = false)
     @xcodeproject_path = xcodeproject_path
     @xcodebuild_opts = xcodebuild_opts
     @xcodebuild_outdir = xcodebuild_outdir
     @user_interface = user_interface
     @verbose = verbose
+    @build_maccatalyst = build_maccatalyst
   end
 
   def build(platform, target, xcodebuild_args = nil)
@@ -57,11 +58,20 @@ class XcodeBuilder
     @verbose
   end
 
+    def build_maccatalyst?
+    @build_maccatalyst
+  end
+
   def build_ios(target, xcodebuild_args)
     user_interface.puts "\nBuilding #{target} for iOS...\n".yellow
     run(create_build_command(target, ios_sim_args, xcodebuild_args, :simulator))
     run(create_build_command(target, ios_device_args, xcodebuild_args, :device))
     user_interface.puts(+'iOS build successful.'.green << "\n\n")
+    if build_maccatalyst?
+      user_interface.puts "\nBuilding #{target} for Mac Catalyst...\n".yellow
+      run(create_build_command(target, maccatalyst_device_args, xcodebuild_args, :macdevice))
+      user_interface.puts(+'Mac Catalyst build successful.'.green << "\n\n")
+    end
   end
 
   def build_osx(target, xcodebuild_args)
@@ -189,5 +199,9 @@ class XcodeBuilder
 
   def tvos_device_args
     '-destination "generic/platform=tvOS"'
+  end
+
+  def maccatalyst_device_args
+    '-destination "generic/platform=macOS,variant=Mac Catalyst"'
   end
 end
