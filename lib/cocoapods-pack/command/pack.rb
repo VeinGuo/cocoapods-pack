@@ -81,7 +81,8 @@ module Pod
           ['--xcodebuild-opts', 'Options to be passed through to xcodebuild.'],
           ['--use-json', 'Use JSON for the generated binary podspec.'],
           ['--sources=https://github.com/artsy/Specs,master', 'The sources from which to pull dependant pods ' \
-            '(defaults to all available repos). Multiple sources must be comma-delimited.']
+            '(defaults to all available repos). Multiple sources must be comma-delimited.'],
+          ['--build_maccatalyst. iOS platform will compile Mac Catalyst.']
         ].concat(super)
       end
 
@@ -102,6 +103,7 @@ module Pod
         @sandbox_map = {}
         @project_files_dir = nil
         @project_zips_dir = nil
+        @build_maccatalyst = argv.flag?('build_maccatalyst', false)
         super
       end
 
@@ -329,7 +331,7 @@ module Pod
       end
 
       def xcode_builder(sandbox, xcodebuild_out_dir)
-        XcodeBuilder.new(sandbox.project_path, @xcodebuild_opts, xcodebuild_out_dir, UI, config.verbose)
+        XcodeBuilder.new(sandbox.project_path, @xcodebuild_opts, xcodebuild_out_dir, UI, config.verbose, @build_maccatalyst)
       end
 
       def copy_vendored_frameworks(podspec, stage_dir)
